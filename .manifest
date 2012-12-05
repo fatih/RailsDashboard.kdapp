@@ -1,0 +1,39 @@
+{
+  "devMode": true,
+  "name": "Rails Dashboard",
+  "version": "0.1",
+  "author": "Fatih Arslan",
+  "authorNick": "arslan",
+  "repo": "git://github.com/farslan/RailsDashboard.kdapp.git",
+  "description": " A simple Rails test and deployment web-app. Rails.kdapp is a simple custom web-app for Koding. You can easily deploy different Rails instances (choose between Rails 1.8.7 and 1.9.3). Each Rails instance come with a FastCGI setup to serve instantly your test environments. In the dashboard you have the option run rails command (like rails generator ..) and change the FastCGI setup for other Rails instances.",
+  "path": "~/Applications/RailsDashboard.kdapp/",
+  "category": "framework",
+  "source": {
+    "blocks": {
+      "app": {
+        "files": [
+          "./common.coffee",
+          "./functions.coffee",
+          "./dashboardpane.coffee",
+          "./installpane.coffee",
+          "./main.coffee"
+        ]
+      }
+    },
+    "stylesheets": [
+      "./resources/style.css"
+    ]
+  },
+  "options": {
+    "type": "tab"
+  },
+  "icns": {
+    "128": "./resources/rails-icon-128.png",
+    "256": "./resources/rails-icon-256.png",
+    "512": "./resources/rails-icon-512.png"
+  },
+    "screenshots": [
+    "./resources/rails_kdapp1.png",
+    "./resources/rails_kdapp2.png"
+  ]
+}
