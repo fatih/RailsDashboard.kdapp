@@ -90,8 +90,8 @@ class RailsApp extends JView
       {domain, name} = formData
       instancesDir = "railsapp"
       
-      dashboard.reloadListNew()
-      dashboard.putNewItem formData
+      dashboard.reloadListNew formData
+      #dashboard.putNewItem formData
       console.log "INSTANCE NAME: #{instancesDir}"
       console.log "NAME: #{name}"
       KD.utils.wait 200, ->

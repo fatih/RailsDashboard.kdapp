@@ -271,36 +271,30 @@ class RailsDashboardPane extends RailsPane
             blogs[i].currentFcgiName = name
             
       appStorage.setValue "blogs", blogs, =>
-        @reloadList()
+        @listController.replaceAllItems(blogs)
         new KDNotificationView
           title: "Done. That's it!"
-  
-  reloadList: ->
-    console.log "RELOADDING"
-    @listController.removeAllItems()
-    @loader.show()
-    appStorage.fetchStorage (storage)=>
-      @loader.hide()
-      blogs = appStorage.getValue("blogs") or []
-      if blogs.length > 0
-        blogs.sort (a, b) -> if a.timestamp < b.timestamp then -1 else 1
-        blogs.forEach (item)=> @putNewItem item, no  
    
-  reloadListNew: ->
+  reloadListNew:(formData) ->
     console.log "RELOADDING"
-    @listController.removeAllItems()
-    @loader.show()
     appStorage.fetchStorage (storage)=>
-      @loader.hide()
       blogs = appStorage.getValue("blogs") or []
       if blogs.length > 0
-        blogs.sort (a, b) -> if a.timestamp < b.timestamp then -1 else 1
-        blogs.forEach (item)=> 
-          @listController.addItem item
-          console.log item
+        @listController.replaceAllItems(blogs)
+        @listController.addItem formData
+
+    #@listController.removeAllItems()
+    #@loader.show()
+    #appStorage.fetchStorage (storage)=>
+    #  @loader.hide()
+    #  blogs = appStorage.getValue("blogs") or []
+    #  if blogs.length > 0
+    #    blogs.sort (a, b) -> if a.timestamp < b.timestamp then -1 else 1
+    #    blogs.forEach (item)=> 
+    #      @listController.addItem item
+    #      console.log item
         
   removeItem:(listItemView)->
-    
     console.log "REMOVING: #{listItemView}"
     blogs = appStorage.getValue "blogs"
     blogToDelete = listItemView.getData()
@@ -308,10 +302,10 @@ class RailsDashboardPane extends RailsPane
     
     # we removed item from appStorage, not save it back
     appStorage.setValue "blogs", blogs, =>
-      if blogs.length is 0 
+      if blogs.length is 0
         @listController.removeAllItems()
-        @notice.show() 
-      else  
+        @notice.show()
+      else
         #Refresh listview
         @listController.replaceAllItems(blogs)
 
