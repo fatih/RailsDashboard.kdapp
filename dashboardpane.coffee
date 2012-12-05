@@ -300,21 +300,21 @@ class RailsDashboardPane extends RailsPane
           console.log item
         
   removeItem:(listItemView)->
+    
     console.log "REMOVING: #{listItemView}"
     blogs = appStorage.getValue "blogs"
     blogToDelete = listItemView.getData()
     blogs.splice blogs.indexOf(blogToDelete), 1
-
-    @reloadList()
-    new KDNotificationView
-      title: "Done. That's it!"
     
+    # we removed item from appStorage, not save it back
     appStorage.setValue "blogs", blogs, =>
-      @listController.removeItem listItemView
-      appStorage.fetchValue "blogs", (blogs)=>
-        blogs?=[]
-        @notice.show() if blogs.length is 0
-    
+      if blogs.length is 0 
+        @listController.removeAllItems()
+        @notice.show() 
+      else  
+        #Refresh listview
+        @listController.replaceAllItems(blogs)
+
   putNewItem:(formData, resizeSplit = yes)->
 
     tabs = @getDelegate()

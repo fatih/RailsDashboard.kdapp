@@ -37,7 +37,7 @@ class RailsApp extends JView
           cssClass  : "clean-gray"
           loader    :
             color   : "#444444"
-            diameter: 12
+            diameter: 15
           callback  : => 
             @dashboardTabs.showPaneByIndex 1
             @buttonGroup.buttons["Create a new Rails App"].hideLoader()
