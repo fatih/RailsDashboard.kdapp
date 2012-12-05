@@ -309,13 +309,12 @@ class RailsDashboardPane extends RailsPane
     new KDNotificationView
       title: "Done. That's it!"
     
-    ###
     appStorage.setValue "blogs", blogs, =>
       @listController.removeItem listItemView
       appStorage.fetchValue "blogs", (blogs)=>
         blogs?=[]
         @notice.show() if blogs.length is 0
-    ###
+    
   putNewItem:(formData, resizeSplit = yes)->
 
     tabs = @getDelegate()

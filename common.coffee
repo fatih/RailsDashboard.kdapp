@@ -51,15 +51,19 @@ class RailsApp extends JView
     @dashboardTabs.showPane dashboard
 
     installPane.on "RailsInstalled", (formData)->
-      {domain, name, instancesDir} = formData
+      {domain, name} = formData
+      instancesDir = "railsapp"
+      
       dashboard.reloadListNew()
       dashboard.putNewItem formData
+      console.log "INSTANCE NAME: #{instancesDir}"
+      console.log "NAME: #{name}"
       KD.utils.wait 200, ->
         tc.refreshFolder tc.nodes["/Users/#{nickname}"], ->
           KD.utils.wait 200, ->
-            tc.selectNode tc.nodes["/Users/#{nickname}/#{instancesDir}"], ->
+            tc.refreshFolder tc.nodes["/Users/#{nickname}/#{instancesDir}"], ->
               KD.utils.wait 200, ->
-                tc.selectNode tc.nodes["/Users/#{nickname}/#{instancesDir}/#{name}"]
+                tc.refreshFolder tc.nodes["/Users/#{nickname}/#{instancesDir}/#{name}"]
 
         
 
