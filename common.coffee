@@ -6,11 +6,11 @@ class RailsApp extends JView
     
     @listenWindowResize()
     
-    @loaderView  = new KDView
-      cssClass  : "clean-gray"
-      size:
-        height  : 20
-        width   : 200
+    #@loaderView  = new KDView
+    #  cssClass  : "clean-gray"
+    #  size:
+    #    height  : 20
+    #    width   : 200
       
     @dashboardTabs = new KDTabView
       hideHandleCloseIcons : yes
@@ -35,7 +35,13 @@ class RailsApp extends JView
           callback  : => @dashboardTabs.showPaneByIndex 0
         "Create a new Rails App" :
           cssClass  : "clean-gray"
-          callback  : => @dashboardTabs.showPaneByIndex 1
+          loader    :
+            color   : "#444444"
+            diameter: 12
+          callback  : => 
+            @dashboardTabs.showPaneByIndex 1
+            @buttonGroup.buttons["Create a new Rails App"].hideLoader()
+
 
     @dashboardTabs.on "PaneDidShow", (pane)=>
       if pane.name is "dashboard"
@@ -56,27 +62,30 @@ class RailsApp extends JView
       
     @dashboardTabs.showPane dashboard
     
-    @loaderView.addSubView @installLoader = new KDLoaderView
-      loaderOptions :
-        color       : "#000000"
-        diameter    : 20
-        density     : 30
-        range       : 0.4
-        speed       : 1.5
-        FPS         : 24
-        
-    @loaderView.addSubView @installText = new KDLabelView
-      title   : " Installing Rails..."
-    
-    @loaderView.hide()
+    #@loaderView.addSubView @installLoader = new KDLoaderView
+    #  loaderOptions :
+    #    color       : "#000000"
+    #    diameter    : 20
+    #    density     : 30
+    #    range       : 0.4
+    #    speed       : 1.5
+    #    FPS         : 24
+    #    
+    #@loaderView.addSubView @installText = new KDLabelView
+    #  title   : " Installing Rails..."
+    #
+    #@loaderView.hide()
 
     installPane.on "RailsBegin", (formdata) =>
-      @loaderView.show()
-      @installLoader.show()
+      @buttonGroup.buttons["Create a new Rails App"].showLoader()
+
+      #@loaderView.show()
+      #@installLoader.show()
 
     installPane.on "RailsInstalled", (formData)=>
-      @loaderView.hide()
-      @installLoader.hide()
+      @buttonGroup.buttons["Create a new Rails App"].hideLoader()
+      #@loaderView.hide()
+      #@installLoader.hide()
       
       {domain, name} = formData
       instancesDir = "railsapp"
@@ -114,8 +123,6 @@ class RailsApp extends JView
       <section>
       {{> @buttonGroup}}
       {{> @consoleToggle}}
-      <br><br>
-      {{> @loaderView}}
       </section>
     </header>
     {{> @dashboardTabs}}
