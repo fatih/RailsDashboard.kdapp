@@ -55,12 +55,24 @@ installRails = (formData, callback)->
 
   {name, domain, timestamp, railsversion, rubyversion} = formData
 
-  showInstallProcess = new KDNotificationView
-      title   : "Installing Rails..."
-      #type    : "mini"
-      cssClass: "success"
-      closeManually: yes
-      duration    : 0
+  showLoader = new KDLoaderView
+    size          :
+      width       : 60
+    cssClass      : "loader"
+    loaderOptions :
+      color       : "#ccc"
+      shape       : "square"
+      diameter    : 30
+      range       : 0.4
+      speed       : 1
+      FPS         : 24
+
+  #showInstallProcess = new KDNotificationView
+      #title   : "Installing Rails..."
+      ##type    : "mini"
+      #cssClass: "success"
+      #closeManually: yes
+      #duration    : 0
 
   path = "/"
   userDir   = "/Users/#{nickname}/Sites/#{domain}/website/"
@@ -187,7 +199,7 @@ require File.expand_path('../application', __FILE__)
   runInQueue = (cmds, index)=>
     command  = cmds[index]
     if cmds.length == index or not command
-      showInstallProcess.destroy()
+      showLoader.hide()
       showInstallSuccess()
       parseOutput "<br>#############"
       parseOutput "<br>Rails instance server setup		: #{userDir}#{path}"
