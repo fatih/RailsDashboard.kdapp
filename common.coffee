@@ -91,6 +91,7 @@ class RailsApp extends JView
             tc.refreshFolder tc.nodes["/Users/#{nickname}/#{instancesDir}"], ->
               KD.utils.wait 200, ->
                 tc.refreshFolder tc.nodes["/Users/#{nickname}/#{instancesDir}/#{name}"]
+                tc.selectNode tc.nodes["/Users/#{nickname}/#{instancesDir}/#{name}"]
 
         
 
