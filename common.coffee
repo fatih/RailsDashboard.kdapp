@@ -3,9 +3,15 @@ class RailsApp extends JView
   constructor:->
 
     super
-
+    
     @listenWindowResize()
-
+    
+    @loaderView  = new KDView
+      cssClass  : "clean-gray"
+      size:
+        height  : 20
+        width   : 200
+      
     @dashboardTabs = new KDTabView
       hideHandleCloseIcons : yes
       hideHandleContainer  : yes
@@ -40,17 +46,38 @@ class RailsApp extends JView
   viewAppended:->
 
     super
-
+    
     @dashboardTabs.addPane dashboard = new RailsDashboardPane
       cssClass : "dashboard"
       name     : "dashboard"
 
     @dashboardTabs.addPane installPane = new RailsInstallPane
       name     : "install"
-
+      
     @dashboardTabs.showPane dashboard
+    
+    @loaderView.addSubView @installLoader = new KDLoaderView
+      loaderOptions :
+        color       : "#000000"
+        diameter    : 20
+        density     : 30
+        range       : 0.4
+        speed       : 1.5
+        FPS         : 24
+        
+    @loaderView.addSubView @installText = new KDLabelView
+      title   : " Installing Rails..."
+    
+    @loaderView.hide()
 
-    installPane.on "RailsInstalled", (formData)->
+    installPane.on "RailsBegin", (formdata) =>
+      @loaderView.show()
+      @installLoader.show()
+
+    installPane.on "RailsInstalled", (formData)=>
+      @loaderView.hide()
+      @installLoader.hide()
+      
       {domain, name} = formData
       instancesDir = "railsapp"
       
@@ -86,6 +113,8 @@ class RailsApp extends JView
       <section>
       {{> @buttonGroup}}
       {{> @consoleToggle}}
+      <br><br>
+      {{> @loaderView}}
       </section>
     </header>
     {{> @dashboardTabs}}
@@ -110,6 +139,7 @@ class RailsSplit extends KDSplitView
     super
 
     @panels[1].setClass "terminal-tab"
+
 
 class RailsPane extends KDTabPaneView
 

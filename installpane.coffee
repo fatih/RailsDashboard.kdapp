@@ -81,7 +81,6 @@ class RailsInstallPane extends RailsPane
     
   # Install 
   submit:(formData)=>
-
    
     {domain, name, railsversion, rubyversion} = formData
     formData.timestamp = parseInt formData.timestamp, 10
@@ -115,6 +114,7 @@ class RailsInstallPane extends RailsPane
       @utils.wait 5000, -> split.resizePanel 0, 1
 
     successCb = =>
+      @emit "RailsBegin", formData
       installRails formData, (timestamp)=>
         @emit "RailsInstalled", formData
         @form.buttons["Create Rails instance"].hideLoader()
@@ -171,7 +171,6 @@ class RailsInstallPane extends RailsPane
                     modalHome.buttons.No.hideLoader()
                     modalHome.destroy()
                     failCb()
-
 
     checkFastCgi formData, (err, response)=>
         console.log "checkFastCgi"

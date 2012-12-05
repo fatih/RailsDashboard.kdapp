@@ -18,6 +18,7 @@ showInstallSuccess = ->
         cssClass  : "success"
         duration  : 3000
         
+        
 parseOutput = (res, err = no)->
   res = "<br><cite style='color:red'>[ERROR] #{res}</cite><br><br><br>" if err
   {output} = split
@@ -54,25 +55,6 @@ String::capitalize = ->
 installRails = (formData, callback)->
 
   {name, domain, timestamp, railsversion, rubyversion} = formData
-
-  showLoader = new KDLoaderView
-    size          :
-      width       : 60
-    cssClass      : "loader"
-    loaderOptions :
-      color       : "#ccc"
-      shape       : "square"
-      diameter    : 30
-      range       : 0.4
-      speed       : 1
-      FPS         : 24
-
-  #showInstallProcess = new KDNotificationView
-      #title   : "Installing Rails..."
-      ##type    : "mini"
-      #cssClass: "success"
-      #closeManually: yes
-      #duration    : 0
 
   path = "/"
   userDir   = "/Users/#{nickname}/Sites/#{domain}/website/"
@@ -177,7 +159,7 @@ require File.expand_path('../application', __FILE__)
           }, (err)-> if err
                         parseOutput err
           
-
+          
   # Disable color output for rails commands. This supress the fcking color codes that comes with the rails command
   # which doesnt have any fcking --no-color option. Thank you rails!
   # Line 35 is empty, thus a hacky but good option
@@ -194,12 +176,10 @@ require File.expand_path('../application', __FILE__)
   # Restart server again
   commands.push  "touch ~/Sites/${USER}.koding.com/website/dispatch.fcgi"
 
-
   # Run commands in correct order if one fails do not continue
   runInQueue = (cmds, index)=>
     command  = cmds[index]
     if cmds.length == index or not command
-      showLoader.hide()
       showInstallSuccess()
       parseOutput "<br>#############"
       parseOutput "<br>Rails instance server setup		: #{userDir}#{path}"
