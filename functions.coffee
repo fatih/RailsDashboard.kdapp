@@ -200,7 +200,11 @@ installRails = (formData, callback)->
       parseOutput "$ #{command}<br/>"
       kc.run command, (err, res)=>
         if err
-          parseOutput err, yes
+          parseOutput err.message, yes
+          split.railsApp.buttonGroup.buttons["Create a new Rails App"].hideLoader()
+          KD.utils.wait 10000, ->
+            split.resizePanel 0, 1
+
         else
           parseOutput res + '<br/>'
           runInQueue cmds, index + 1
