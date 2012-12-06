@@ -36,7 +36,7 @@ class RailsApp extends JView
         "Create a new Rails App" :
           cssClass  : "clean-gray"
           loader    :
-            color   : "#444444"
+            color   : "#EBEBEB"
             diameter: 15
           callback  : => 
             @dashboardTabs.showPaneByIndex 1

@@ -60,17 +60,16 @@ installRails = (formData, callback)->
   userDir   = "/Users/#{nickname}/Sites/#{domain}/website/"
   #If you change it, grep the source file because this variable is used
   instancesDir = "railsapp"
-  tmpAppDir = "#{instancesDir}/tmp"
+  tmpAppDir = "#{instancesDir}/tmpFilesRails"
   
-
   # rails uses app name: foo as Foo, thus convert the first letter to upper case
   # we'll use that in some .rb files below
   appName = name.capitalize()
   
   commands = [ "mkdir -p '#{tmpAppDir}'"
-			   "[ -d \"#{instancesDir}\" ] || mkdir '#{instancesDir}'"
+               "[ -d \"#{instancesDir}\" ] || mkdir '#{instancesDir}'"
                "rails new '#{instancesDir}/#{name}'"]
-
+               
   # Create it, we will need it later during uploading files
   kc.run "mkdir -p '#{tmpAppDir}'", (err, res)=>
         if err
@@ -79,61 +78,61 @@ installRails = (formData, callback)->
           parseOutput res + '<br/>'
 
   htaccessFile = """
-RewriteEngine On
-RewriteCond %{REQUEST_FILENAME} !-f
-RewriteRule ^(.*)$ /dispatch.fcgi/$1 [QSA,L]
-				 """
+                 RewriteEngine On
+                 RewriteCond %{REQUEST_FILENAME} !-f
+                 RewriteRule ^(.*)$ /dispatch.fcgi/$1 [QSA,L]
+                 """
 
   # These are used with dispatchFile and environment
   switch rubyversion
       when "1.8.7"
           dispatchVersion = "#!/usr/bin/ruby"
           environmentVersion = """
-#ENV['HOME'] ||= `echo ~`.strip
-#ENV['GEM_PATH'] = File.expand_path('~/.gems') + ":" + '/usr/lib/ruby/gems/1.8'
-#ENV['GEM_HOME'] = File.expand_path('~/.gems')
+                               #ENV['HOME'] ||= `echo ~`.strip
+                               #ENV['GEM_PATH'] = File.expand_path('~/.gems') + ":" + '/usr/lib/ruby/gems/1.8'
+                               #ENV['GEM_HOME'] = File.expand_path('~/.gems')
                                """
       when "1.9.3"
           dispatchVersion = "#!/usr/bin/ruby1.9"
           environmentVersion = """
-ENV['HOME'] ||= `echo ~`.strip
-ENV['GEM_HOME'] = File.expand_path('~/.gems')
-ENV['GEM_PATH'] = File.expand_path('~/.gems') + ":" + '/opt/ruby19/lib64/ruby/gems/1.9.1'
+                               ENV['HOME'] ||= `echo ~`.strip
+                               ENV['GEM_HOME'] = File.expand_path('~/.gems')
+                               ENV['GEM_PATH'] = File.expand_path('~/.gems') + ":" + '/opt/ruby19/lib64/ruby/gems/1.9.1'
                                """
       else console.log "No default version"
 
 
   dispatchFile = """
-#{dispatchVersion}
-require 'rubygems'
-Gem.clear_paths
-require 'fcgi'
-require '/Users/#{nickname}/#{instancesDir}/#{name}/config/environment'
-class Rack::PathInfoRewriter
- def initialize(app)
-   @app = app
- end
- def call(env)
-   env.delete('SCRIPT_NAME')
-   parts = env['REQUEST_URI'].split('?')
-   env['PATH_INFO'] = parts[0]
-   env['QUERY_STRING'] = parts[1].to_s
-   @app.call(env)
- end
-end
-
-Rack::Handler::FastCGI.run  Rack::PathInfoRewriter.new(#{appName}::Application)
-				 """
+                #{dispatchVersion}
+                require 'rubygems'
+                Gem.clear_paths
+                require 'fcgi'
+                require '/Users/#{nickname}/#{instancesDir}/#{name}/config/environment'
+                class Rack::PathInfoRewriter
+                 def initialize(app)
+                   @app = app
+                 end
+                 def call(env)
+                   env.delete('SCRIPT_NAME')
+                   parts = env['REQUEST_URI'].split('?')
+                   env['PATH_INFO'] = parts[0]
+                   env['QUERY_STRING'] = parts[1].to_s
+                   @app.call(env)
+                 end
+                end
+                
+                Rack::Handler::FastCGI.run  Rack::PathInfoRewriter.new(#{appName}::Application)
+                """
                   
   environmentFile = """
-# Load the rails application
-require File.expand_path('../application', __FILE__)
-
-#{environmentVersion}
-
-# Initialize the rails application
-#{appName}::Application.initialize!
-					"""
+                    # Load the rails application
+                    require File.expand_path('../application', __FILE__)
+                    
+                    #{environmentVersion}
+                    
+                    # Initialize the rails application
+                    #{appName}::Application.initialize!
+                    """
 
   # Create files..
   kc.run {
