@@ -120,11 +120,9 @@ class RailsInstallPane extends RailsPane
         @form.buttons["Create Rails instance"].hideLoader()
 
     message = """
-              <pre>
-              There are files in your domain root which conflicts with Rails Dashboard. If you continue Rails Dashboard will override them.
+              There are files in your domain root which conflicts with Rails Dashboard. If you continue Rails Dashboard will override them. These files are <strong>dispatch.fcgi</strong> and <strong>.htaccess</strong>.
               
               Do you want to proceed?
-              </pre>
               """
     warning = """
               <p class='modalformline' style='color:gray'>
@@ -138,7 +136,6 @@ class RailsInstallPane extends RailsPane
                               <div class='modalformline'>
                                 <p>#{message}</p>
                               </div>
-                              #{warning}
                              """
             height         : "auto"
             overlay        : yes

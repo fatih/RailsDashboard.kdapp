@@ -92,6 +92,9 @@ class RailsApp extends JView
       
       dashboard.reloadListNew formData
       #dashboard.putNewItem formData
+      split.resizePanel 0, 1
+      @dashboardTabs.showPaneByIndex 0
+
       console.log "INSTANCE NAME: #{instancesDir}"
       console.log "NAME: #{name}"
       KD.utils.wait 200, ->
