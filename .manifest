@@ -1,7 +1,7 @@
 {
   "devMode": true,
   "name": "Rails Dashboard",
-  "version": "0.1",
+  "version": "0.1.1",
   "author": "Fatih Arslan",
   "authorNick": "arslan",
   "repo": "git://github.com/farslan/RailsDashboard.kdapp.git",
