@@ -282,32 +282,29 @@ class RailsDashboardPane extends RailsPane
       if blogs.length > 0
         @listController.replaceAllItems(blogs)
         @listController.addItem formData
-
-    #@listController.removeAllItems()
-    #@loader.show()
-    #appStorage.fetchStorage (storage)=>
-    #  @loader.hide()
-    #  blogs = appStorage.getValue("blogs") or []
-    #  if blogs.length > 0
-    #    blogs.sort (a, b) -> if a.timestamp < b.timestamp then -1 else 1
-    #    blogs.forEach (item)=> 
-    #      @listController.addItem item
-    #      console.log item
         
   removeItem:(listItemView)->
-    console.log "REMOVING: #{listItemView}"
-    blogs = appStorage.getValue "blogs"
-    blogToDelete = listItemView.getData()
-    blogs.splice blogs.indexOf(blogToDelete), 1
-    
-    # we removed item from appStorage, not save it back
-    appStorage.setValue "blogs", blogs, =>
-      if blogs.length is 0
-        @listController.removeAllItems()
-        @notice.show()
+    {name, previousFcgiName, currentFcgiName} = listItemView.getData()
+
+    appStorage.fetchValue 'blogs', (blogs)=>
+      if blogs? and blogs.length > 0
+        # Iterate over all instance names and find the one we selected
+        # After removing break the for loop (because of hoisted "blogs" variable)
+        for instance, i in blogs
+          if instance.name is name
+            blogs.splice(i, 1)
+            break
       else
-        #Refresh listview
-        @listController.replaceAllItems(blogs)
+          console.log "There is no blog!"
+        
+      # Ok now we removed our instance. Now save the other instances back
+      appStorage.setValue "blogs", blogs, =>
+        if blogs.length is 0
+          @listController.removeAllItems()
+          @notice.show()
+        else
+          #Refresh listview
+          @listController.replaceAllItems(blogs)
 
   putNewItem:(formData, resizeSplit = yes)->
 
