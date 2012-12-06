@@ -282,6 +282,11 @@ class RailsDashboardPane extends RailsPane
       if blogs.length > 0
         @listController.replaceAllItems(blogs)
         @listController.addItem formData
+        @notice.hide()
+      else
+        @listController.addItem formData
+        @notice.hide()
+        
         
   removeItem:(listItemView)->
     {name, previousFcgiName, currentFcgiName} = listItemView.getData()
