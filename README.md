@@ -21,9 +21,9 @@ This repo is the source code of the app that is currently hosted in Koding.com. 
 
 # Screenshots
 
-![Create a Rails instance](https://raw.github.com/farslan/RailsDashboard.kdapp/master/resources/rails_kdapp1.png)
+![Create a Rails instance](https://raw.github.com/fatih/RailsDashboard.kdapp/master/resources/rails_kdapp1.png)
 
 --
 
-![Maintain Rails instances](https://raw.github.com/farslan/RailsDashboard.kdapp/master/resources/rails_kdapp2.png)
+![Maintain Rails instances](https://raw.github.com/fatih/RailsDashboard.kdapp/master/resources/rails_kdapp2.png)
 
