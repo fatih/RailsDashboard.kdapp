@@ -116,7 +116,7 @@ class RailsDashboardPane extends RailsPane
               diameter : 16
             callback   : =>
               @removeItem listItemView
-              kc.run command, (err, res)=>
+              KD.getSingleton("kiteController").run command, (err, res)=>
                 modal.buttons.Delete.hideLoader()
                 modal.destroy()
                 if err
