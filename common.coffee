@@ -103,8 +103,8 @@ class RailsApp extends JView
       <figure></figure>
       <article>
         <h3>Rails Dashboard</h3>
-        <p>This application installs Rails App instances and setup a server into your home folder.</p>
-        <p>You can maintain all your Rails instances via the dashboard and switch between them.</p>
+        <p>This application installs Rails App instances via RVM easily with one click.</p>
+        <p>You can maintain all your Rails instances, start the Rails server and console via the dashboard.</p>
       </article>
       <section>
       {{> @buttonGroup}}

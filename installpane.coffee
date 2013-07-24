@@ -119,7 +119,7 @@ class RailsInstallPane extends RailsPane
     name = @form.inputs.name.getValue()
     rubyversion = @form.inputs.rubyversion.getValue()
     railsversion = @form.inputs.railsversion.getValue()
-    railsversion = parseInt @form.inputs.timestamp.getValue(), 10
+    timestamp = parseInt @form.inputs.timestamp.getValue(), 10
 
     @checkPath name, (err, response)=>
       if err # means there is no such folder
@@ -146,7 +146,7 @@ class RailsInstallPane extends RailsPane
         @form.buttons.install.hideLoader()
         appStorage.fetchValue 'blogs', (blogs)->
           blogs or= []
-          blogs.push {domain: domain, name: name,rubyversion: rubyversion, railsversion: railsversion}
+          blogs.push {timestamp: timestamp, domain: domain, name: name,rubyversion: rubyversion, railsversion: railsversion}
           appStorage.setValue "blogs", blogs
       else # there is a folder on the same path so fail.
         @form.buttons.install.hideLoader()
