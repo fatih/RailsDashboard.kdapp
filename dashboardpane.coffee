@@ -116,24 +116,18 @@ class RailsDashboardPane extends RailsPane
               diameter : 16
             callback   : =>
               @removeItem listItemView
-              split.resizePanel 250, 0
-              parseOutput "<br><br>Deleting /home/#{nickname}/#{instancesDir}/#{name}<br><br>"
-              parseOutput command
               kc.run command, (err, res)=>
                 modal.buttons.Delete.hideLoader()
                 modal.destroy()
                 if err
-                  parseOutput err, yes
+                  console.log "Deleting Rails Error", err
                   new KDNotificationView
                     title    : "There was an error, you may need to remove it manually!"
                     duration : 3333
                 else
-                  parseOutput "<br><br>#############"
-                  parseOutput "<br>Your rails instance: '#{name}' is successfully deleted."
-                  parseOutput "<br>#############<br><br>"
-
-                @utils.wait 1500, ->
-                  split.resizePanel 0, 1
+                  new KDNotificationView
+                    title    : "Your rails instance: '#{name}' is successfully deleted."
+                    duration : 3333
 
   reloadListNew:(formData) ->
     appStorage.fetchStorage (storage)=>
@@ -171,13 +165,10 @@ class RailsDashboardPane extends RailsPane
           @listController.replaceAllItems(blogs)
 
   putNewItem:(formData, resizeSplit = yes)->
-
     tabs = @getDelegate()
     tabs.showPane @
     @listController.addItem formData
     @notice.hide()
-    if resizeSplit
-      @utils.wait 1500, -> split.resizePanel 0, 1
 
   showError = ->
     new KDNotificationView
