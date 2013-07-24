@@ -97,11 +97,11 @@ class RailsInstallPane extends RailsPane
       @remote = remote
 
     # webterm crashes when its hidden, so we hide it using height: 0
-    terminalWrapper = new KDView
-    terminalWrapper.$().css "height", 0
-    terminalWrapper.addSubView @webterm
+    @terminalWrapper = new KDView
+    @terminalWrapper.$().css "height", 0
+    @terminalWrapper.addSubView @webterm
 
-    @terminal.addSubView terminalWrapper
+    @terminal.addSubView @terminalWrapper
 
 
   checkPath: (name, callback)->
@@ -114,15 +114,10 @@ class RailsInstallPane extends RailsPane
       callback? err, response
 
   hideTerminal: ->
-    @hidden = yes
-    @webterm.getDelegate().$().animate height: 0, 100, =>
-      @setPositions()
+    @terminalWrapper.getDelegate().$().animate height: 0, 100
 
   showTerminal: (callback)->
-    @hidden = no
-    @webterm.getDelegate().$().animate height: @terminal.height, 100, =>
-      @setPositions()
-      @run @terminal.command  if @terminal.command
+    @terminalWrapper.getDelegate().$().animate height: @terminal.height, 100, =>
       @webterm.$().click()
       callback?()
 
