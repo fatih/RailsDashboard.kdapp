@@ -129,7 +129,7 @@ class RailsInstallPane extends RailsPane
         instancesDir = "railsapp"
 
         command = "[ -d \"#{instancesDir}\" ] || mkdir '#{instancesDir}' && \
-                   \curl -L https://get.rvm.io | bash  && \
+                   \curl -L https://get.rvm.io | bash -s stable && \
                    echo 'source ~/.rvm/scripts/rvm' >> ~/.bash_aliases && source ~/.bash_aliases && \
                    echo '[[ -s \"$HOME/.rvm/scripts/rvm\" ]] && source \"$HOME/.rvm/scripts/rvm\"' >> ~/.bashrc && \
                    rvm install #{rubyversion} && \
@@ -161,7 +161,9 @@ class RailsInstallPane extends RailsPane
     """
     {{> this.form}}
     <br>
-    <i>note: your sudo password is your koding password</i>
+    <i>note: your sudo password is your koding password. </i>
+    <br>
+    <i>It will take some time for the first app creation due to missing dependencies that needs to be installed.</i>
     <br>
     {{> this.terminal}}
     """
