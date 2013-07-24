@@ -19,7 +19,6 @@
       "app": {
         "files": [
           "./common.coffee",
-          "./functions.coffee",
           "./dashboardpane.coffee",
           "./installpane.coffee",
           "./main.coffee"
