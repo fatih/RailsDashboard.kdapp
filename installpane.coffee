@@ -114,10 +114,10 @@ class RailsInstallPane extends RailsPane
       callback? err, response
 
   hideTerminal: ->
-    @terminalWrapper.getDelegate().$().animate height: 0, 100
+    @terminalWrapper.$().animate height: 0, 100
 
   showTerminal: (callback)->
-    @terminalWrapper.getDelegate().$().animate height: @terminal.height, 100, =>
+    @terminalWrapper.$().animate height: @terminal.height, 100, =>
       @webterm.$().click()
       callback?()
 
