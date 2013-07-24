@@ -164,9 +164,10 @@ class RailsDashboardPane extends RailsPane
           #Refresh listview
           @listController.replaceAllItems(blogs)
 
-  putNewItem:(formData, resizeSplit = yes)->
-    tabs = @getDelegate()
-    tabs.showPane @
+  putNewItem:(formData, showTab = yes)->
+    if showTab
+      tabs = @getDelegate()
+      tabs.showPane @
     @listController.addItem formData
     @notice.hide()
 
@@ -188,7 +189,7 @@ class RailsDashboardPane extends RailsPane
       blogs = appStorage.getValue("blogs") or []
       if blogs.length > 0
         blogs.sort (a, b) -> if a.timestamp < b.timestamp then -1 else 1
-        blogs.forEach (item)=> @putNewItem item, no
+        blogs.forEach (item)=> @putNewItem item
       else
         @notice.show()
 
