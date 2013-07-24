@@ -88,7 +88,6 @@ class RailsInstallPane extends RailsPane
       cssClass: "terminal"
     @terminal.$().css
       width: "100%"
-      height: 500
 
     @webterm = new WebTermView
       delegate: @terminal
@@ -161,7 +160,8 @@ class RailsInstallPane extends RailsPane
     """
     {{> this.form}}
     <br>
-    Installing Rails... <i>Your sudo password is your koding password</i>
+    <i>note: your sudo password is your koding password</i>
+    <br>
     {{> this.terminal}}
     """
 
