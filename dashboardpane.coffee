@@ -30,14 +30,14 @@ class RailsDashboardPane extends RailsPane
         range       : 0.4
         speed       : 1
         FPS         : 24
-
+        
+        
     @listController.getListView().on "RunCommandButtonClicked", (listItemView)=>
-
       {timestamp, domain, name, rubyversion, railsversion} = listItemView.getData()
-
+      
       path = ""
       instancesDir = "railsapp"
-
+      
       modal = new KDModalViewWithForms
         title                   : "Run a command inside your '#{name}' rails instance"
         content                 : "<div class='modalformline'>You can run any rails commands that you run from Terminal</div>"
@@ -72,7 +72,7 @@ class RailsDashboardPane extends RailsPane
                   callback      : ->
                     modal.modalTabs.forms.form.inputs.Output.setValue ''
                     modal.modalTabs.forms.form.buttons.Run.hideLoader()
-
+                    
               fields            :
                 Command         :
                   label         : "Command:"
@@ -87,114 +87,46 @@ class RailsDashboardPane extends RailsPane
                   cssClass      : "output-screen"
 
     @listController.getListView().on "SwitchButtonClicked", (listItemView)=>
-      
-      {timestamp, domain, name, rubyversion, railsversion, setupFcgi, previousFcgiName, currentFcgiName} = listItemView.getData()
-      
-      path = ""
-      userDir = "/Users/#{nickname}/Sites/#{domain}/website/"
+      {timestamp, domain, name, rubyversion, railsversion} = listItemView.getData()    
       instancesDir = "railsapp"
+      railsDir = "/home/#{nickname}/#{instancesDir}/#{name}"
+      railsCmd = "rvm #{rubyversion}@rails#{railsversion} && cd #{railsDir} && rails server"
       
-      # These are used with dispatchFile and environment
-      switch rubyversion
-        when "1.8.7"
-          dispatchVersion = "#!/usr/bin/ruby"
-        when "1.9.3"
-          dispatchVersion = "#!/usr/bin/ruby1.9"
-        else console.log "No default version"
-        
-      if name is currentFcgiName
-        appName = previousFcgiName.capitalize()
-        name = previousFcgiName
-      else
-        appName = name.capitalize()
-        
-      dispatchFile = """
-                     #{dispatchVersion}
-                     require 'rubygems'
-                     Gem.clear_paths
-                     require 'fcgi'
-                     require '/Users/#{nickname}/#{instancesDir}/#{name}/config/environment'
-                     class Rack::PathInfoRewriter
-                      def initialize(app)
-                        @app = app
-                      end
-                      def call(env)
-                        env.delete('SCRIPT_NAME')
-                        parts = env['REQUEST_URI'].split('?')
-                        env['PATH_INFO'] = parts[0]
-                        env['QUERY_STRING'] = parts[1].to_s
-                        @app.call(env)
-                      end
-                     end
-                     
-                     Rack::Handler::FastCGI.run  Rack::PathInfoRewriter.new(#{appName}::Application)
-				     """
-      message = """
-                The files dispatch.fcgi and .htaccess will be replaced for the #{name} instance. Your other rails instances will be still functional.
-                
-                Do you want to proceed?
-                """
-      modalHome = new KDModalView
-        title       : "Setup FastCGI for '#{name}'"
-        content        : """
-                          <div class='modalformline'>
-                            <p>#{message}</p>
-                          </div>
-                         """
-        height         : "auto"
-        overlay        : yes
-        width          : 500
-        buttons        :
-          Continue     :
-            style      : "modal-clean-gray"
-            loader     :
-              color    : "#ffffff"
-              diameter : 16
-            callback   : =>
-              modalHome.buttons.Continue.hideLoader()
-              modalHome.destroy()
-              kc.run {
-                method:"uploadFile",
-                withArgs:{
-                  path: "#{userDir}/dispatch.fcgi",
-                  contents:dispatchFile}
-                  }, (err)->
-                    if err
-                      parseOutput err
-                    else
-                      console.log "File uploaded"
-                      kc.run "pgrep dispatch.fcgi && killall dispatch.fcgi" , (err, response)->
-                        if err
-                          parseOutput err
-                        else
-                          console.log "FCGI killed"
-                          console.log response
-              @switchFcgi listItemView
-          No           :
-            label      : "No thanks"
-            style      : "modal-clean-red"
-            loader     :
-              color    : "#ffffff"
-              diameter : 16
-            callback   : =>
-              console.log "No Clicked"
-              modalHome.buttons.No.hideLoader()
-              modalHome.destroy()
+      modal = new ModalViewWithTerminal
+        title   : "Starting Rails server"
+        width   : 700
+        overlay : no
+        terminal:
+          height: 500
+          command: railsCmd
+          hidden: no
+        content : """
+                  <div class='modalformline'>
+                    <p>Running from <strong>#{railsDir}</strong>.</p>
+                    <p>Using Rails <strong>#{railsversion}</strong> with Ruby <strong>#{rubyversion}</strong></p>
+                  </div>
+                  """
+        buttons :
+          Visit:
+            title: "open http://#{domain}:3000"
+            cssClass: "modal-clean-green"
+            callback: =>
+              KD.getSingleton("appManager").openFileWithApplication "https://#{domain}:3000", "Viewer"
+                  
+      modal.on "terminal.event", (data)->
+        new KDNotificationView
+          title: "Installed successfully!"
 
     @listController.getListView().on "DeleteLinkClicked", (listItemView)=>
-
       {domain, name} = listItemView.getData()
-
-      path = ""
-      userDir = "/Users/#{nickname}/Sites/#{domain}/website/"
+      
       instancesDir = "railsapp"
-
-      message = "<pre>/Users/#{nickname}/#{instancesDir}/#{name}</pre>"
-      command = "rm -r '/Users/#{nickname}/#{instancesDir}/#{name}'"
+      message = "<pre>/home/#{nickname}/#{instancesDir}/#{name}</pre>"
+      command = "rm -r '/home/#{nickname}/#{instancesDir}/#{name}'"
       warning = """<p class='modalformline' style='color:red'>
                      Warning: This will remove everything under this directory
                      </p>"""
-
+                     
       modal = new KDModalView
         title          : "Are you sure want to delete this Rails instance?"
         content        : """
@@ -215,9 +147,9 @@ class RailsDashboardPane extends RailsPane
             callback   : =>
               @removeItem listItemView
               split.resizePanel 250, 0
-              parseOutput "<br><br>Deleting /Users/#{nickname}/#{instancesDir}/#{name}<br><br>"
+              parseOutput "<br><br>Deleting /home/#{nickname}/#{instancesDir}/#{name}<br><br>"
               parseOutput command
-              kc.run withArgs : {command} , (err, res)=>
+              kc.run command, (err, res)=>
                 modal.buttons.Delete.hideLoader()
                 modal.destroy()
                 if err
@@ -228,55 +160,12 @@ class RailsDashboardPane extends RailsPane
                 else
                   parseOutput "<br><br>#############"
                   parseOutput "<br>Your rails instance: '#{name}' is successfully deleted."
-                  parseOutput "<br>"
-                  parseOutput "<br>Note: You can remove manually dispatch.fcgi and .htacces from your root domain."
-                  parseOutput "<br>      Be careful these files might be used with other apps or Rails instances."
                   parseOutput "<br>#############<br><br>"
-                  tc.refreshFolder tc.nodes["/Users/#{nickname}/#{instancesDir}"]
-
+                  
                 @utils.wait 1500, ->
                   split.resizePanel 0, 1
-
-  switchFcgi:(listItemView)->
-    
-    {name, previousFcgiName, currentFcgiName} = listItemView.getData()
-    
-    console.log "FCGI for:"
-    console.log "Name       :#{name}"
-    console.log "Current    :#{currentFcgiName}"
-    console.log "Previous   :#{previousFcgiName}"
-    appStorage.fetchValue 'blogs', (blogs) =>
-      blogs?=[]
-      # Disable setupFcgi for all other but blogName
-      if blogs.length > 0
-        if name is currentFcgiName
-          console.log "Revert to old FCGI"
-          for instance, i in blogs
-            if instance.name is previousFcgiName
-              blogs[i].setupFcgi = on
-            else
-              blogs[i].setupFcgi = off
-            # Store current currentName as the previous fcgi for all instances
-            blogs[i].currentFcgiName = previousFcgiName
-            blogs[i].previousFcgiName = currentFcgiName
-        else
-          console.log "Switch to new FCGI"
-          for instance, i in blogs
-            if instance.name is name
-              blogs[i].setupFcgi = on
-            else
-              blogs[i].setupFcgi = off
-            
-            blogs[i].previousFcgiName = currentFcgiName
-            blogs[i].currentFcgiName = name
-            
-      appStorage.setValue "blogs", blogs, =>
-        @listController.replaceAllItems(blogs)
-        new KDNotificationView
-          title: "Done. That's it!"
    
   reloadListNew:(formData) ->
-    console.log "RELOADDING"
     appStorage.fetchStorage (storage)=>
       blogs = appStorage.getValue("blogs") or []
       if blogs.length > 0
@@ -357,16 +246,10 @@ class RailsInstalledAppListItem extends KDListItemView
 
     super options, data
 
-    if data.setupFcgi
-      @switchButton = new KDButtonView
-        cssClass   : "rails-button cupid-green clean-gray test-input"
-        title      : "Using FastCGI"
-        callback   : => @getDelegate().emit "SwitchButtonClicked", @
-    else   
-      @switchButton = new KDButtonView
-        cssClass   : "clean-gray test-input"
-        title      : "Setup FastCGI"
-        callback   : => @getDelegate().emit "SwitchButtonClicked", @
+    @switchButton = new KDButtonView
+      cssClass   : "clean-gray test-input"
+      title      : "Start Rails Server"
+      callback   : => @getDelegate().emit "SwitchButtonClicked", @
 
     @delete = new KDCustomHTMLView
       tagName : "a"

@@ -5,29 +5,27 @@ class RailsApp extends JView
     super
     
     @listenWindowResize()
-    
-    #@loaderView  = new KDView
-    #  cssClass  : "clean-gray"
-    #  size:
-    #    height  : 20
-    #    width   : 200
-      
+ 
     @dashboardTabs = new KDTabView
       hideHandleCloseIcons : yes
       hideHandleContainer  : yes
       cssClass             : "rails-installer-tabs"
 
     @consoleToggle = new KDToggleButton
-      states        : [
-        "Console",(callback)->
+      states          : [
+        title         : "Console"
+        callback      : (callback)->
           @setClass "toggle"
           split.resizePanel 250, 0
           callback null
-        "Console &times;",(callback)->
+      ,
+        title         : "Console &times;"
+        callback      : (callback)->
           @unsetClass "toggle"
           split.resizePanel 0, 1
           callback null
       ]
+      
     @buttonGroup = new KDButtonGroupView
       buttons       :
         "Dashboard" :
@@ -41,7 +39,6 @@ class RailsApp extends JView
           callback  : => 
             @dashboardTabs.showPaneByIndex 1
             @buttonGroup.buttons["Create a new Rails App"].hideLoader()
-
 
     @dashboardTabs.on "PaneDidShow", (pane)=>
       if pane.name is "dashboard"
@@ -61,20 +58,6 @@ class RailsApp extends JView
       name     : "install"
       
     @dashboardTabs.showPane dashboard
-    
-    #@loaderView.addSubView @installLoader = new KDLoaderView
-    #  loaderOptions :
-    #    color       : "#000000"
-    #    diameter    : 20
-    #    density     : 30
-    #    range       : 0.4
-    #    speed       : 1.5
-    #    FPS         : 24
-    #    
-    #@loaderView.addSubView @installText = new KDLabelView
-    #  title   : " Installing Rails..."
-    #
-    #@loaderView.hide()
 
     installPane.on "RailsBegin", (formdata) =>
       @buttonGroup.buttons["Create a new Rails App"].showLoader()
@@ -134,6 +117,7 @@ class RailsApp extends JView
 class RailsSplit extends KDSplitView
 
   constructor:(options, data)->
+      
 
     @output = new KDScrollView
       tagName  : "pre"

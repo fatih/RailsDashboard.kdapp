@@ -1,11 +1,14 @@
+kite         = KD.getSingleton "kiteController"
+{nickname}   = KD.whoami().profile
+appStorage = new AppStorage "rails-installer", "1.0"
+
 class RailsInstallPane extends RailsPane
+  constructor:(options={}, data)->
 
-  constructor:->
-
-    super
+    super options, data
 
     @form = new KDFormViewWithFields
-      callback              : @submit.bind(@)
+      callback              : @bound "installRails"
       buttons               :
         install             :
           title             : "Create Rails instance"
@@ -35,156 +38,129 @@ class RailsInstallPane extends RailsPane
           label             : "Domain :"
           name              : "domain"
           itemClass         : KDSelectBox
-          defaultValue      : "#{nickname}.koding.com"
-        railsversion       :
-          label             : "Rails Version :"
-          name              : "railsversion"
-          itemClass         : KDSelectBox
-          defaultValue      : "3.2.9"
+          defaultValue      : "#{nickname}.kd.io"
         rubyversion       :
           label             : "Ruby Version :"
           name              : "rubyversion"
           itemClass         : KDSelectBox
-          defaultValue      : "1.9.3"
+          defaultValue      : "2.0.0"
+        railsversion       :
+          label             : "Rails Version :"
+          name              : "railsversion"
+          itemClass         : KDSelectBox
+          defaultValue      : "4.0.0"
+
 
     @form.on "FormValidationFailed", => @form.buttons["Create Rails instance"].hideLoader()
+       
+    vmc = KD.getSingleton 'vmController'
 
-    domainsPath = "/Users/#{nickname}/Sites"
-
-    kc.run "ls #{domainsPath} -lpva"
-    , (err, response)=>
-      if err then warn err
+    vmc.fetchVMs (err, vms)=>
+      if err then console.log err
       else
-        files = FSHelper.parseLsOutput [domainsPath], response
-        newSelectOptions = []
+        vms.forEach (vm) =>
+          vmc.fetchVMDomains vm, (err, domains) =>
+            newSelectOptions = []
+            usableDomains = [domain for domain in domains when not /^(vm|shared)-[0-9]/.test domain].first
+            usableDomains.forEach (domain) =>
+              newSelectOptions.push {title : domain, value : domain}
+      
+            {domain} = @form.inputs
+            domain.setSelectOptions newSelectOptions
 
-        files.forEach (domain)->
-          newSelectOptions.push {title : domain.name, value : domain.name}
-
-        {domain} = @form.inputs
-        domain.setSelectOptions newSelectOptions
-        
-    # Populate rails version
-    newRailsOptions = []
-    newRailsOptions.push {title : "3.2.9 (stable)", value : "3.2.9"}
-    
-    {railsversion} = @form.inputs
-    railsversion.setSelectOptions newRailsOptions
     
     # Populate ruby version
     newRubyOptions = []
-    newRubyOptions.push {title : "1.9.3 (stable)", value : "1.9.3"}
-    newRubyOptions.push {title : "1.8.7", value : "1.8.7"}
-    
+    newRubyOptions.push {title : "2.0.0 (stable)", value : "2.0.0"}
+    newRubyOptions.push {title : "1.9.3", value : "1.9.3"}
     {rubyversion} = @form.inputs
     rubyversion.setSelectOptions newRubyOptions
+        
+    # Populate rails version
+    newRailsOptions = []
+    newRailsOptions.push {title : "4.0.0 (stable)", value : "4.0.0"}
+    newRailsOptions.push {title : "3.2.14", value : "3.2.14"}
+
+    {railsversion} = @form.inputs
+    railsversion.setSelectOptions newRailsOptions
     
-  # Install 
-  submit:(formData)=>
-   
-    {domain, name, railsversion, rubyversion} = formData
-    formData.timestamp = parseInt formData.timestamp, 10
-    formData.fullPath = "#{domain}/website/"
-    formData.setupFcgi = on # Enable it for us ..
-    formData.currentFcgiName = name  #For now it's itself
-
-    # .. but disable setupFcgi for all other instances
-    appStorage.fetchValue 'blogs', (blogs)->
-      console.log "App Storage Fetching"
+    @terminal = new KDView
+      cssClass: "terminal"
+    @terminal.$().css
+      width: "100%"
+      height: 500
+  
+    @webterm = new WebTermView
+      delegate: @terminal
+      cssClass: "webterm"
       
-      if blogs? and blogs.length > 0
-        console.log "There are some instances.."
-        console.log "App Storage Instances", blogs
-        for instance, i in blogs
-          console.log "Instance:", instance
-          blogs[i].setupFcgi = off
-          blogs[i].previousFcgiName = instance.currentFcgiName
-          formData.previousFcgiName = instance.currentFcgiName
+    @webterm.on "WebTermConnected", (remote)=>
+      @remote = remote
+    
+    @terminal.addSubView @webterm
+    
+    
+  checkPath: (name, callback)->
+    instancesDir = "railsapp"
+  
+    kc.run "[ -d /home/#{nickname}/#{instancesDir}/#{name} ] && echo 'These directories exist'"
+    , (err, response)->
+      if response
+        console.log "You have already a Rails instance with the name \"#{name}\". Please delete it or choose another path"
+      callback? err, response
+
+  showInstallFail: -> 
+    new KDNotificationView
+        title     : "Rails instance exists already. Please delete it or choose another name"
+        duration  : 3000
+
+  installRails: =>
+    domain = @form.inputs.domain.getValue()
+    name = @form.inputs.name.getValue()
+    rubyversion = @form.inputs.rubyversion.getValue()
+    railsversion = @form.inputs.railsversion.getValue()
+
+    
+    @checkPath name, (err, response)=>
+      if err # means there is no such folder
+        console.log "Starting install with formData", @form
+        
+        #If you change it, grep the source file because this variable is used
+        instancesDir = "railsapp"
+        
+        command = "[ -d \"#{instancesDir}\" ] || mkdir '#{instancesDir}' && \
+                   \curl -L https://get.rvm.io | bash  && \
+                   echo 'source ~/.rvm/scripts/rvm' >> ~/.bash_aliases && source ~/.bash_aliases && \
+                   echo '[[ -s \"$HOME/.rvm/scripts/rvm\" ]] && source \"$HOME/.rvm/scripts/rvm\"' >> ~/.bashrc && \
+                   rvm install #{rubyversion} && \
+                   rvm use #{rubyversion} && \
+                   rvm rubygems current && \
+                   rvm gemset create rails#{railsversion} && \
+                   rvm gemset use rails#{railsversion} && \
+                   gem install rails --no-ri --no-rdoc --version=#{railsversion} && \
+                   rails new '#{instancesDir}/#{name}' && \
+                   echo '*** -> Installation successfull at: \"~/#{instancesDir}/#{name}\". Rails is ready with version #{railsversion}, using Ruby #{rubyversion}'\n"
+                   
                     
-          blogs[i].currentFcgiName = name
-        console.log "App Storage Instances (modified)", blogs  
-        appStorage.setValue "blogs", blogs
-      else
-        console.log "There are no instances. Nothing to do."
-        formData.previousFcgiName = name  #For now it's itself
-        
-        
-    failCb = =>
-      @form.buttons["Create Rails instance"].hideLoader()
-      @utils.wait 5000, -> split.resizePanel 0, 1
-
-    successCb = =>
-      @emit "RailsBegin", formData
-      installRails formData, (timestamp)=>
-        @emit "RailsInstalled", formData
-        @form.buttons["Create Rails instance"].hideLoader()
-
-    message = """
-              There are files in your domain root which conflicts with Rails Dashboard. If you continue Rails Dashboard will override them. These files are <strong>dispatch.fcgi</strong> and <strong>.htaccess</strong>.
-              
-              Do you want to proceed?
-              """
-    warning = """
-              <p class='modalformline' style='color:gray'>
-              Note:  These files are <strong>dispatch.fcgi</strong> and <strong>.htaccess</strong>. You can backup these files and use them later again
-              </p>
-              """
-    warnHomePath = =>
-        modalHome = new KDModalView
-            title       : "It seems you're using FastCGI for something else."
-            content        : """
-                              <div class='modalformline'>
-                                <p>#{message}</p>
-                              </div>
-                             """
-            height         : "auto"
-            overlay        : yes
-            width          : 500
-            buttons        :
-              Continue     :
-                style      : "modal-clean-gray"
-                loader     :
-                  color    : "#ffffff"
-                  diameter : 16
-                callback   : =>
-                    split.resizePanel 250, 0
-                    checkPath formData, (err, response) =>
-                        console.log arguments
-                        modalHome.buttons.Continue.hideLoader()
-                        modalHome.destroy()
-                        if err # means there is no such folder
-                            console.log "Calling success from warnHomePath"
-                            successCb()
-                        else # there is a folder on the same path so fail.
-                            failCb()
-              No           :
-                title      : "No thanks"
-                style      : "modal-clean-red"
-                loader     :
-                  color    : "#ffffff"
-                  diameter : 16
-                callback   : =>
-                    console.log "No Clicked"
-                    modalHome.buttons.No.hideLoader()
-                    modalHome.destroy()
-                    failCb()
-
-    checkFastCgi formData, (err, response)=>
-        console.log "checkFastCgi"
-        if err
-            split.resizePanel 250, 0
-            # means there is no dispatch and htaccess file
-            # now check for path
-            checkPath formData, (err, response)=>
-                console.log arguments
-                if err # means there is no such folder
-                    console.log "Calling success from checkFastCgi"
-                    successCb()
-                else # there is a folder on the same path so fail.
-                    failCb()
-        else
-            warnHomePath()
-            @form.buttons["Create Rails instance"].hideLoader()
+        @remote.input command
+        @form.buttons.install.hideLoader()
+        appStorage.fetchValue 'blogs', (blogs)->
+          blogs or= []
+          blogs.push {domain: domain, name: name,rubyversion: rubyversion, railsversion: railsversion}
+          appStorage.setValue "blogs", blogs
+      else # there is a folder on the same path so fail.
+        @form.buttons.install.hideLoader()
+        @showInstallFail()
 
 
-  pistachio:-> "{{> @form}}"
+  pistachio:-> 
+    """
+    {{> this.form}}
+    <br>
+    Installing Rails... <i>Your sudo password is your koding password</i>
+    {{> this.terminal}}
+    """
+    
+    
+    
+    
