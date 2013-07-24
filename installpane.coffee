@@ -142,12 +142,16 @@ class RailsInstallPane extends RailsPane
                    echo '*** -> Installation successfull at: \"~/#{instancesDir}/#{name}\". Rails is ready with version #{railsversion}, using Ruby #{rubyversion}'\n"
 
 
+        formData = {timestamp: timestamp, domain: domain, name: name,rubyversion: rubyversion, railsversion: railsversion}
         @remote.input command
         @form.buttons.install.hideLoader()
         appStorage.fetchValue 'blogs', (blogs)->
           blogs or= []
-          blogs.push {timestamp: timestamp, domain: domain, name: name,rubyversion: rubyversion, railsversion: railsversion}
+          blogs.push formData
           appStorage.setValue "blogs", blogs
+
+        @emit "RailsInstalled", formData
+
       else # there is a folder on the same path so fail.
         @form.buttons.install.hideLoader()
         @showInstallFail()

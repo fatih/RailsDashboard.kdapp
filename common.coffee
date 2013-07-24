@@ -44,6 +44,9 @@ class RailsApp extends JView
 
     @dashboardTabs.showPane dashboard
 
+    installPane.on "RailsInstalled", (formData)->
+      dashboard.putNewItem formData
+
     @_windowDidResize()
 
   _windowDidResize:->
