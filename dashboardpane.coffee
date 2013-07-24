@@ -81,7 +81,7 @@ class RailsDashboardPane extends RailsPane
             title: "open http://#{domain}:3000"
             cssClass: "modal-clean-green"
             callback: =>
-              KD.getSingleton("appManager").openFileWithApplication "https://#{domain}:3000", "Viewer"
+              @openInNewTab "http://#{domain}:3000"
 
       modal.on "terminal.event", (data)->
         new KDNotificationView
@@ -140,6 +140,14 @@ class RailsDashboardPane extends RailsPane
         @listController.addItem formData
         @notice.hide()
 
+
+  openInNewTab: (url)->
+    link = document.createElement "a"
+    link.href = link.target = url
+    link.style.display = "none"
+    document.body.appendChild link
+    link.click()
+    link.parentNode.removeChild link
 
   removeItem:(listItemView)->
     {name, previousFcgiName, currentFcgiName} = listItemView.getData()
