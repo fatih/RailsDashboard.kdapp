@@ -96,7 +96,12 @@ class RailsInstallPane extends RailsPane
     @webterm.on "WebTermConnected", (remote)=>
       @remote = remote
 
-    @terminal.addSubView @webterm
+    # webterm crashes when its hidden, so we hide it using height: 0
+    terminalWrapper = new KDView
+    terminalWrapper.$().css "height", 0
+    terminalWrapper.addSubView @webterm
+
+    @terminal.addSubView terminalWrapper
 
 
   checkPath: (name, callback)->
@@ -108,12 +113,26 @@ class RailsInstallPane extends RailsPane
         console.log "You have already a Rails instance with the name \"#{name}\". Please delete it or choose another path"
       callback? err, response
 
+  hideTerminal: ->
+    @hidden = yes
+    @webterm.getDelegate().$().animate height: 0, 100, =>
+      @setPositions()
+
+  showTerminal: (callback)->
+    @hidden = no
+    @webterm.getDelegate().$().animate height: @terminal.height, 100, =>
+      @setPositions()
+      @run @terminal.command  if @terminal.command
+      @webterm.$().click()
+      callback?()
+
   showInstallFail: ->
     new KDNotificationView
         title     : "Rails instance exists already. Please delete it or choose another name"
         duration  : 3000
 
   installRails: =>
+    @showTerminal()
     domain = @form.inputs.domain.getValue()
     name = @form.inputs.name.getValue()
     rubyversion = @form.inputs.rubyversion.getValue()
