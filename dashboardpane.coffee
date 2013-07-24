@@ -30,68 +30,38 @@ class RailsDashboardPane extends RailsPane
         range       : 0.4
         speed       : 1
         FPS         : 24
-        
-        
-    @listController.getListView().on "RunCommandButtonClicked", (listItemView)=>
+
+    @listController.getListView().on "StartRailsConsole", (listItemView)=>
       {timestamp, domain, name, rubyversion, railsversion} = listItemView.getData()
-      
-      path = ""
+
       instancesDir = "railsapp"
-      
-      modal = new KDModalViewWithForms
-        title                   : "Run a command inside your '#{name}' rails instance"
-        content                 : "<div class='modalformline'>You can run any rails commands that you run from Terminal</div>"
-        overlay                 : yes
-        width                   : 600
-        height                  : "auto"
-        tabs                    :
-          navigable             : yes
-          forms                 :
-            form                :
-              buttons           :
-                Run             :
-                  cssClass      : "modal-clean-gray"
-                  loader        :
-                    color       : "#444444"
-                    diameter    : 12
-                  callback      : ->
-                    command = modal.modalTabs.forms.form.inputs.Command.getValue()
+      railsDir = "/home/#{nickname}/#{instancesDir}/#{name}"
+      railsCmd = "rvm #{rubyversion}@rails#{railsversion} && cd #{railsDir} && rails console"
 
-                    setTimeout ->
-                      if modal.modalTabs.forms.form.buttons.Run.loader.active
-                        showError()
-                        modal.modalTabs.forms.form.buttons.Clear.getCallback()()
-                    , 8000
+      modal = new ModalViewWithTerminal
+        title   : "Rails Console"
+        width   : 700
+        overlay : no
+        terminal:
+          height: 500
+          command: railsCmd
+          hidden: no
+        content : """
+                  <div class='modalformline'>
+                    <p>Running from <strong>#{railsDir}</strong>.</p>
+                    <p>Using Rails <strong>#{railsversion}</strong> with Ruby <strong>#{rubyversion}</strong></p>
+                  </div>
+                  """
+      modal.on "terminal.event", (data)->
+        new KDNotificationView
+          title: "Opened successfully"
 
-                    kc.run "cd #{instancesDir}/#{name} && #{command} ", (err, res)->
-                      showError() if err
-                      modal.modalTabs.forms.form.inputs.Output.setValue err or res
-                      modal.modalTabs.forms.form.buttons.Run.hideLoader()
-                Clear           :
-                  cssClass      : "modal-clean-gray"
-                  callback      : ->
-                    modal.modalTabs.forms.form.inputs.Output.setValue ''
-                    modal.modalTabs.forms.form.buttons.Run.hideLoader()
-                    
-              fields            :
-                Command         :
-                  label         : "Command:"
-                  name          : "command"
-                  placeholder   : "Run a rails command like: rails generate controller static index"
-                  cssClass      : "command-input"
-                Output          :
-                  label         : "Output:"
-                  type          : "textarea"
-                  name          : "output"
-                  placeholder   : "The output of command will be here..."
-                  cssClass      : "output-screen"
-
-    @listController.getListView().on "SwitchButtonClicked", (listItemView)=>
-      {timestamp, domain, name, rubyversion, railsversion} = listItemView.getData()    
+    @listController.getListView().on "StartRailsServer", (listItemView)=>
+      {timestamp, domain, name, rubyversion, railsversion} = listItemView.getData()
       instancesDir = "railsapp"
       railsDir = "/home/#{nickname}/#{instancesDir}/#{name}"
       railsCmd = "rvm #{rubyversion}@rails#{railsversion} && cd #{railsDir} && rails server"
-      
+
       modal = new ModalViewWithTerminal
         title   : "Starting Rails server"
         width   : 700
@@ -112,21 +82,21 @@ class RailsDashboardPane extends RailsPane
             cssClass: "modal-clean-green"
             callback: =>
               KD.getSingleton("appManager").openFileWithApplication "https://#{domain}:3000", "Viewer"
-                  
+
       modal.on "terminal.event", (data)->
         new KDNotificationView
-          title: "Installed successfully!"
+          title: "Started successfully!"
 
     @listController.getListView().on "DeleteLinkClicked", (listItemView)=>
       {domain, name} = listItemView.getData()
-      
+
       instancesDir = "railsapp"
       message = "<pre>/home/#{nickname}/#{instancesDir}/#{name}</pre>"
       command = "rm -r '/home/#{nickname}/#{instancesDir}/#{name}'"
       warning = """<p class='modalformline' style='color:red'>
                      Warning: This will remove everything under this directory
                      </p>"""
-                     
+
       modal = new KDModalView
         title          : "Are you sure want to delete this Rails instance?"
         content        : """
@@ -161,10 +131,10 @@ class RailsDashboardPane extends RailsPane
                   parseOutput "<br><br>#############"
                   parseOutput "<br>Your rails instance: '#{name}' is successfully deleted."
                   parseOutput "<br>#############<br><br>"
-                  
+
                 @utils.wait 1500, ->
                   split.resizePanel 0, 1
-   
+
   reloadListNew:(formData) ->
     appStorage.fetchStorage (storage)=>
       blogs = appStorage.getValue("blogs") or []
@@ -175,8 +145,8 @@ class RailsDashboardPane extends RailsPane
       else
         @listController.addItem formData
         @notice.hide()
-        
-        
+
+
   removeItem:(listItemView)->
     {name, previousFcgiName, currentFcgiName} = listItemView.getData()
 
@@ -190,7 +160,7 @@ class RailsDashboardPane extends RailsPane
             break
       else
           console.log "There is no blog!"
-        
+
       # Ok now we removed our instance. Now save the other instances back
       appStorage.setValue "blogs", blogs, =>
         if blogs.length is 0
@@ -215,7 +185,7 @@ class RailsDashboardPane extends RailsPane
       type     : "mini"
       cssClass : "error"
       duration : 3000
-    
+
   viewAppended:->
 
     super
@@ -246,27 +216,27 @@ class RailsInstalledAppListItem extends KDListItemView
 
     super options, data
 
-    @switchButton = new KDButtonView
+    @consoleButton = new KDButtonView
       cssClass   : "clean-gray test-input"
+      title      : "Open Rails Console"
+      callback   : => @getDelegate().emit "StartRailsConsole", @
+
+    @serverButton = new KDButtonView
+      cssClass   : "rails-button cupid-green clean-gray test-input"
       title      : "Start Rails Server"
-      callback   : => @getDelegate().emit "SwitchButtonClicked", @
+      callback   : => @getDelegate().emit "StartRailsServer", @
 
     @delete = new KDCustomHTMLView
       tagName : "a"
       cssClass: "delete-link"
-      title     : "Deneme"
+      title     : "Delete link"
       click   : => @getDelegate().emit "DeleteLinkClicked", @
-          
-    @runButton = new KDButtonView
-      cssClass   : "clean-gray test-input"
-      title      : "Run a rails command"
-      callback   : => @getDelegate().emit "RunCommandButtonClicked", @
-  
+
   viewAppended:->
     @setTemplate @pistachio()
     @template.update()
     @utils.wait => @setClass "in"
-  
+
   pistachio:->
     {path, timestamp, domain, name, rubyversion, railsversion, currentFcgiName, previousFcgiName} = @getData()
     url = "https://#{domain}/"
@@ -280,8 +250,8 @@ class RailsInstalledAppListItem extends KDListItemView
         <br>
         Ruby:  {{#(rubyversion)}}   Rails: {{#(railsversion)}}
         <br>
-        {{> @runButton}}   {{> @switchButton}}
+        {{> @consoleButton}}   {{> @serverButton}}
     </div>
     <time datetime='#{new Date(timestamp)}'>#{$.timeago new Date(timestamp)}</time>
     """
-  
+

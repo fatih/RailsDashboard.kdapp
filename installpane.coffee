@@ -52,7 +52,7 @@ class RailsInstallPane extends RailsPane
 
 
     @form.on "FormValidationFailed", => @form.buttons["Create Rails instance"].hideLoader()
-       
+
     vmc = KD.getSingleton 'vmController'
 
     vmc.fetchVMs (err, vms)=>
@@ -64,18 +64,18 @@ class RailsInstallPane extends RailsPane
             usableDomains = [domain for domain in domains when not /^(vm|shared)-[0-9]/.test domain].first
             usableDomains.forEach (domain) =>
               newSelectOptions.push {title : domain, value : domain}
-      
+
             {domain} = @form.inputs
             domain.setSelectOptions newSelectOptions
 
-    
+
     # Populate ruby version
     newRubyOptions = []
     newRubyOptions.push {title : "2.0.0 (stable)", value : "2.0.0"}
     newRubyOptions.push {title : "1.9.3", value : "1.9.3"}
     {rubyversion} = @form.inputs
     rubyversion.setSelectOptions newRubyOptions
-        
+
     # Populate rails version
     newRailsOptions = []
     newRailsOptions.push {title : "4.0.0 (stable)", value : "4.0.0"}
@@ -83,33 +83,33 @@ class RailsInstallPane extends RailsPane
 
     {railsversion} = @form.inputs
     railsversion.setSelectOptions newRailsOptions
-    
+
     @terminal = new KDView
       cssClass: "terminal"
     @terminal.$().css
       width: "100%"
       height: 500
-  
+
     @webterm = new WebTermView
       delegate: @terminal
       cssClass: "webterm"
-      
+
     @webterm.on "WebTermConnected", (remote)=>
       @remote = remote
-    
+
     @terminal.addSubView @webterm
-    
-    
+
+
   checkPath: (name, callback)->
     instancesDir = "railsapp"
-  
+
     kc.run "[ -d /home/#{nickname}/#{instancesDir}/#{name} ] && echo 'These directories exist'"
     , (err, response)->
       if response
         console.log "You have already a Rails instance with the name \"#{name}\". Please delete it or choose another path"
       callback? err, response
 
-  showInstallFail: -> 
+  showInstallFail: ->
     new KDNotificationView
         title     : "Rails instance exists already. Please delete it or choose another name"
         duration  : 3000
@@ -119,15 +119,15 @@ class RailsInstallPane extends RailsPane
     name = @form.inputs.name.getValue()
     rubyversion = @form.inputs.rubyversion.getValue()
     railsversion = @form.inputs.railsversion.getValue()
+    railsversion = parseInt @form.inputs.timestamp.getValue(), 10
 
-    
     @checkPath name, (err, response)=>
       if err # means there is no such folder
         console.log "Starting install with formData", @form
-        
+
         #If you change it, grep the source file because this variable is used
         instancesDir = "railsapp"
-        
+
         command = "[ -d \"#{instancesDir}\" ] || mkdir '#{instancesDir}' && \
                    \curl -L https://get.rvm.io | bash  && \
                    echo 'source ~/.rvm/scripts/rvm' >> ~/.bash_aliases && source ~/.bash_aliases && \
@@ -140,8 +140,8 @@ class RailsInstallPane extends RailsPane
                    gem install rails --no-ri --no-rdoc --version=#{railsversion} && \
                    rails new '#{instancesDir}/#{name}' && \
                    echo '*** -> Installation successfull at: \"~/#{instancesDir}/#{name}\". Rails is ready with version #{railsversion}, using Ruby #{rubyversion}'\n"
-                   
-                    
+
+
         @remote.input command
         @form.buttons.install.hideLoader()
         appStorage.fetchValue 'blogs', (blogs)->
@@ -153,14 +153,14 @@ class RailsInstallPane extends RailsPane
         @showInstallFail()
 
 
-  pistachio:-> 
+  pistachio:->
     """
     {{> this.form}}
     <br>
     Installing Rails... <i>Your sudo password is your koding password</i>
     {{> this.terminal}}
     """
-    
-    
-    
-    
+
+
+
+
