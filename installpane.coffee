@@ -103,7 +103,7 @@ class RailsInstallPane extends RailsPane
   checkPath: (name, callback)->
     instancesDir = "railsapp"
 
-    kc.run "[ -d /home/#{nickname}/#{instancesDir}/#{name} ] && echo 'These directories exist'"
+    kite.run "[ -d /home/#{nickname}/#{instancesDir}/#{name} ] && echo 'These directories exist'"
     , (err, response)->
       if response
         console.log "You have already a Rails instance with the name \"#{name}\". Please delete it or choose another path"
