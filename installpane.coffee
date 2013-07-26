@@ -116,6 +116,8 @@ class RailsInstallPane extends RailsPane
         duration  : 3000
 
   installRails: =>
+    @terminal.$().addClass "shown"
+    #@terminal.$().removeClass "shown"
     domain = @form.inputs.domain.getValue()
     name = @form.inputs.name.getValue()
     rubyversion = @form.inputs.rubyversion.getValue()
