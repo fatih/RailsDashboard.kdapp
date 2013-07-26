@@ -43,3 +43,22 @@ Rails-Installer styles
 .rails-installer .loader{left: 47%; top:40px}
 
 .rails-button.cupid-green{width: 95px; padding: 5px 0 6px 0 !important}
+
+
+.rails-installer .terminal {
+  position  : absolute;
+  height    : 500px;
+  width     : 100%;
+  bottom    : -200px;
+  opacity   : 0;
+  -webkit-transition-duration: 200ms;
+  transition-duration: 200ms;
+}
+
+.rails-installer .terminal.shown {
+  bottom    : 0;
+  opacity   : 1;
+  -webkit-transition-duration: 200ms;
+  transition-duration: 200ms;
+}
+
