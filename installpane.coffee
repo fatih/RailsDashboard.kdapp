@@ -88,8 +88,6 @@ class RailsInstallPane extends RailsPane
       cssClass: "terminal"
     @terminal.$().css
       width: "100%"
-    @terminal.$().addClass "shown"
-    #@terminal.$().removeClass "shown"
 
     @webterm = new WebTermView
       delegate: @terminal
