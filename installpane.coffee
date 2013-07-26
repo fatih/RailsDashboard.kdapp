@@ -127,30 +127,47 @@ class RailsInstallPane extends RailsPane
 
         #If you change it, grep the source file because this variable is used
         instancesDir = "railsapp"
+        tmpAppDir = "#{instancesDir}/tmp"
 
-        command = "[ -d \"#{instancesDir}\" ] || mkdir '#{instancesDir}' && \
-                   \curl -L https://get.rvm.io | bash -s stable && \
-                   echo 'source ~/.rvm/scripts/rvm' >> ~/.bash_aliases && source ~/.bash_aliases && \
-                   echo '[[ -s \"$HOME/.rvm/scripts/rvm\" ]] && source \"$HOME/.rvm/scripts/rvm\"' >> ~/.bashrc && \
-                   rvm install #{rubyversion} && \
-                   rvm use #{rubyversion} && \
-                   rvm rubygems current && \
-                   rvm gemset create rails#{railsversion} && \
-                   rvm gemset use rails#{railsversion} && \
-                   gem install rails --no-ri --no-rdoc --version=#{railsversion} && \
-                   rails new '#{instancesDir}/#{name}' && \
-                   echo '*** -> Installation successfull at: \"~/#{instancesDir}/#{name}\". Rails is ready with version #{railsversion}, using Ruby #{rubyversion}'\n"
+        kite.run "mkdir -p '#{tmpAppDir}'", (err, res)=>
+          if err then console.log err
+          else
+            railsScript = """
+                          #!/bin/bash
+                          [ -d \"#{instancesDir}\" ] || mkdir '#{instancesDir}'
+                          \curl -L https://get.rvm.io | bash -s stable
+                          echo 'source ~/.rvm/scripts/rvm' >> ~/.bash_aliases && source ~/.bash_aliases
+                          echo '[[ -s \"$HOME/.rvm/scripts/rvm\" ]] && source \"$HOME/.rvm/scripts/rvm\"' >> ~/.bashrc
+                          rvm install #{rubyversion}
+                          rvm use #{rubyversion}
+                          rvm rubygems current
+                          rvm gemset create rails#{railsversion}
+                          rvm gemset use rails#{railsversion}
+                          gem install rails --no-ri --no-rdoc --version=#{railsversion}
+                          rails new '#{instancesDir}/#{name}'
+                          echo '*** -> Installation successfull at: \"~/#{instancesDir}/#{name}\". Rails is ready with version #{railsversion}, using Ruby #{rubyversion}'
+                          """
 
+            newFile = FSHelper.createFile
+              type   : 'file'
+              path   : "#{tmpAppDir}/railsScript.sh"
+              vmName : @vmName
 
-        formData = {timestamp: timestamp, domain: domain, name: name,rubyversion: rubyversion, railsversion: railsversion}
-        @remote.input command
-        @form.buttons.install.hideLoader()
-        appStorage.fetchValue 'blogs', (blogs)->
-          blogs or= []
-          blogs.push formData
-          appStorage.setValue "blogs", blogs
+            newFile.save railsScript, (err, res)=>
+              if err then warn err
+              else
+                @emit "fs.saveAs.finished", newFile, @
 
-        @emit "RailsInstalled", formData
+            command = "bash #{tmpAppDir}/railsScript.sh\n"
+            formData = {timestamp: timestamp, domain: domain, name: name,rubyversion: rubyversion, railsversion: railsversion}
+            @remote.input command
+            @form.buttons.install.hideLoader()
+            appStorage.fetchValue 'blogs', (blogs)->
+              blogs or= []
+              blogs.push formData
+              appStorage.setValue "blogs", blogs
+
+            @emit "RailsInstalled", formData
 
       else # there is a folder on the same path so fail.
         @form.buttons.install.hideLoader()
@@ -167,6 +184,7 @@ class RailsInstallPane extends RailsPane
     <br>
     {{> this.terminal}}
     """
+
 
 
 
