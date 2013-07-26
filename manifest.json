@@ -1,4 +1,5 @@
 {
+  "devMode": true,
   "authorNick": "arslan",
   "author": "Fatih Arslan",
   "multiple": false,
@@ -9,7 +10,7 @@
   "behavior": "application",
   "name": "Rails Dashboard",
   "identifier": "com.koding.apps.railsdashboard",
-  "version": "0.2.1",
+  "version": "0.2.2.1",
   "repo": "git://github.com/fatih/RailsDashboard.kdapp.git",
   "description": " A simple Rails test and deployment web-app. RailsDashboard.kdapp is a simple custom web-app for Koding. You can easily deploy different Rails instances and Ruby version (powered by RVM). In the dashboard you have the option run rails console and run rails server to quickly lookup your rails website.",
   "path": "~/Applications/RailsDashboard.kdapp/",
