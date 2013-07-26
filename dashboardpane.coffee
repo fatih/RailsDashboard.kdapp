@@ -31,15 +31,15 @@ class RailsDashboardPane extends RailsPane
         speed       : 1
         FPS         : 24
 
-    @listController.getListView().on "StartRailsConsole", (listItemView)=>
+    @listController.getListView().on "StartTerminal", (listItemView)=>
       {timestamp, domain, name, rubyversion, railsversion} = listItemView.getData()
 
       instancesDir = "railsapp"
       railsDir = "/home/#{nickname}/#{instancesDir}/#{name}"
-      railsCmd = "rvm #{rubyversion}@rails#{railsversion} && cd #{railsDir} && rails console"
+      railsCmd = "rvm #{rubyversion}@rails#{railsversion} && cd #{railsDir}"
 
       modal = new ModalViewWithTerminal
-        title   : "Rails Console"
+        title   : "Rails Dashboard Terminal"
         width   : 700
         overlay : no
         terminal:
@@ -216,10 +216,10 @@ class RailsInstalledAppListItem extends KDListItemView
 
     super options, data
 
-    @consoleButton = new KDButtonView
+    @terminalButton = new KDButtonView
       cssClass   : "clean-gray test-input"
-      title      : "Open Rails Console"
-      callback   : => @getDelegate().emit "StartRailsConsole", @
+      title      : "Open Terminal"
+      callback   : => @getDelegate().emit "StartTerminal", @
 
     @serverButton = new KDButtonView
       cssClass   : "rails-button cupid-green clean-gray test-input"
@@ -250,7 +250,7 @@ class RailsInstalledAppListItem extends KDListItemView
         <br>
         Ruby:  {{#(rubyversion)}}   Rails: {{#(railsversion)}}
         <br>
-        {{> @consoleButton}}   {{> @serverButton}}
+        {{> @terminalButton}}   {{> @serverButton}}
     </div>
     <time datetime='#{new Date(timestamp)}'>#{$.timeago new Date(timestamp)}</time>
     """
