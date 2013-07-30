@@ -84,21 +84,6 @@ class RailsInstallPane extends RailsPane
     {railsversion} = @form.inputs
     railsversion.setSelectOptions newRailsOptions
 
-    @terminal = new KDView
-      cssClass: "terminal"
-    @terminal.$().css
-      width: "100%"
-
-    @webterm = new WebTermView
-      delegate: @terminal
-      cssClass: "webterm"
-
-    @webterm.on "WebTermConnected", (remote)=>
-      @remote = remote
-
-    @terminal.addSubView @webterm
-
-
   checkPath: (name, callback)->
     instancesDir = "railsapp"
 
@@ -114,8 +99,6 @@ class RailsInstallPane extends RailsPane
         duration  : 3000
 
   installRails: =>
-    @terminal.$().addClass "shown"
-    #@terminal.$().removeClass "shown"
     domain = @form.inputs.domain.getValue()
     name = @form.inputs.name.getValue()
     rubyversion = @form.inputs.rubyversion.getValue()
@@ -159,9 +142,25 @@ class RailsInstallPane extends RailsPane
               else
                 @emit "fs.saveAs.finished", newFile, @
 
-            command = "bash #{tmpAppDir}/railsScript.sh\n"
+            installCmd = "bash #{tmpAppDir}/railsScript.sh\n"
             formData = {timestamp: timestamp, domain: domain, name: name,rubyversion: rubyversion, railsversion: railsversion}
-            @remote.input command
+
+            modal = new ModalViewWithTerminal
+              title   : "Creating Rails Instance: '#{name}'"
+              width   : 700
+              overlay : no
+              terminal:
+                height: 500
+                command: installCmd
+                hidden: no
+              content : """
+                        <div class='modalformline'>
+                          <p>Using Rails <strong>#{railsversion}</strong> with Ruby <strong>#{rubyversion}</strong></p>
+                          <br>
+                          <i>note: your sudo password is your koding password. </i>
+                        </div>
+                        """
+
             @form.buttons.install.hideLoader()
             appStorage.fetchValue 'blogs', (blogs)->
               blogs or= []
@@ -179,12 +178,10 @@ class RailsInstallPane extends RailsPane
     """
     {{> this.form}}
     <br>
-    <i>note: your sudo password is your koding password. </i>
+    <i>  It will take some time for the first app creation due to missing dependencies that needs to be installed.</i>
     <br>
-    <i>It will take some time for the first app creation due to missing dependencies that needs to be installed.</i>
-    <br>
-    {{> this.terminal}}
     """
+
 
 
 
